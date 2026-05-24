@@ -1,0 +1,6 @@
+[install]
+ignoreScripts = false
+concurrentScripts = 4
+auto = "disable"
+saveTextLockfile = true
+linkWorkspacePackages = true
