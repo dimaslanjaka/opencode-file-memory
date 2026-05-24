@@ -6,7 +6,13 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "noEmit": true,
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    "types": [
+      "bun-types/globals", "node", "bun-types"
+    ],
   },
-  "include": ["src", "tests"]
+  "include": [
+    "src",
+    "tests"
+  ]
 }
