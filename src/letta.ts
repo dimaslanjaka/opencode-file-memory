@@ -35,13 +35,13 @@ Memory blocks have two scopes:
 
 export const DEFAULT_DESCRIPTIONS: Record<string, string> = {
   persona:
-    "The persona block: Stores details about your current persona, guiding how you behave and respond. This helps you maintain consistent behavior across sessions.",
+    'The persona block: Stores details about your current persona, guiding how you behave and respond. This helps you maintain consistent behavior across sessions.',
   human:
-    "The human block: Stores key details about the person you are conversing with (preferences, habits, constraints), allowing for more personalized collaboration.",
+    'The human block: Stores key details about the person you are conversing with (preferences, habits, constraints), allowing for more personalized collaboration.',
   project:
-    "The project block: Stores durable, high-signal information about this codebase: commands, architecture notes, conventions, and gotchas.",
+    'The project block: Stores durable, high-signal information about this codebase: commands, architecture notes, conventions, and gotchas.'
 };
 
 export function getDefaultDescription(label: string): string {
-  return DEFAULT_DESCRIPTIONS[label] ?? "Durable memory block. Keep this concise and high-signal.";
+  return DEFAULT_DESCRIPTIONS[label] ?? 'Durable memory block. Keep this concise and high-signal.';
 }

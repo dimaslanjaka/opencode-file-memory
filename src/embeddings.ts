@@ -1,14 +1,14 @@
-const MODEL_NAME = "Xenova/all-MiniLM-L6-v2";
-const MODEL_DTYPE = "q8";
+const MODEL_NAME = 'Xenova/all-MiniLM-L6-v2';
+const MODEL_DTYPE = 'q8';
 
 let pipelinePromise: Promise<any> | undefined;
 
 async function getPipeline() {
   if (!pipelinePromise) {
     pipelinePromise = (async () => {
-      const { pipeline } = await import("@huggingface/transformers");
-      return pipeline("feature-extraction", MODEL_NAME, {
-        dtype: MODEL_DTYPE,
+      const { pipeline } = await import('@huggingface/transformers');
+      return pipeline('feature-extraction', MODEL_NAME, {
+        dtype: MODEL_DTYPE
       });
     })();
   }
@@ -17,15 +17,13 @@ async function getPipeline() {
 
 export async function generateEmbedding(text: string): Promise<number[]> {
   const pipe = await getPipeline();
-  const output = await pipe(text, { pooling: "mean", normalize: true });
+  const output = await pipe(text, { pooling: 'mean', normalize: true });
   return Array.from(output.data as Float32Array) as number[];
 }
 
 export function cosineSimilarity(a: number[], b: number[]): number {
   if (a.length !== b.length) {
-    throw new Error(
-      `Embedding dimension mismatch: ${a.length} vs ${b.length}`,
-    );
+    throw new Error(`Embedding dimension mismatch: ${a.length} vs ${b.length}`);
   }
 
   let dotProduct = 0;

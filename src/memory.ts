@@ -1,14 +1,14 @@
-import * as fs from "node:fs/promises";
-import * as os from "node:os";
-import * as path from "node:path";
+import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
+import * as path from 'node:path';
 
-import yaml from "js-yaml";
-import { z } from "zod";
+import yaml from 'js-yaml';
+import { z } from 'zod';
 
-import { atomicWriteFile, buildFrontmatterDocument, splitFrontmatter } from "./frontmatter";
-import { getDefaultDescription } from "./letta";
+import { atomicWriteFile, buildFrontmatterDocument, splitFrontmatter } from './frontmatter';
+import { getDefaultDescription } from './letta';
 
-export type MemoryScope = "global" | "project";
+export type MemoryScope = 'global' | 'project';
 
 export type MemoryBlock = {
   scope: MemoryScope;
@@ -21,12 +21,11 @@ export type MemoryBlock = {
   lastModified: Date;
 };
 
-
 const FrontmatterSchema = z.looseObject({
   label: z.string().min(1).optional(),
   description: z.string().optional(),
   limit: z.number().int().positive().optional(),
-  read_only: z.boolean().optional(),
+  read_only: z.boolean().optional()
 });
 
 type ParsedFrontmatter = z.infer<typeof FrontmatterSchema>;
@@ -47,21 +46,15 @@ function parseFrontmatter(frontmatterText: string | undefined): ParsedFrontmatte
 
 const DEFAULT_LIMIT = 5000;
 
-async function readBlockFile(
-  scope: MemoryScope,
-  filePath: string,
-): Promise<MemoryBlock> {
-  const [raw, stats] = await Promise.all([
-    fs.readFile(filePath, "utf-8"),
-    fs.stat(filePath),
-  ]);
+async function readBlockFile(scope: MemoryScope, filePath: string): Promise<MemoryBlock> {
+  const [raw, stats] = await Promise.all([fs.readFile(filePath, 'utf-8'), fs.stat(filePath)]);
   const { frontmatterText, body } = splitFrontmatter(raw);
   const fm = parseFrontmatter(frontmatterText);
 
   const label = (fm.label ?? path.basename(filePath, path.extname(filePath))).trim();
-  const description = (fm.description && fm.description.trim().length > 0
-    ? fm.description
-    : getDefaultDescription(label)).trim();
+  const description = (
+    fm.description && fm.description.trim().length > 0 ? fm.description : getDefaultDescription(label)
+  ).trim();
   const limit = fm.limit ?? DEFAULT_LIMIT;
   const readOnly = (fm.read_only ?? false) === true;
 
@@ -73,22 +66,22 @@ async function readBlockFile(
     readOnly,
     value: body.trim(),
     filePath,
-    lastModified: stats.mtime,
+    lastModified: stats.mtime
   };
 }
 
 async function writeBlockFile(
   filePath: string,
-  block: Pick<MemoryBlock, "label" | "description" | "limit" | "readOnly" | "value">,
+  block: Pick<MemoryBlock, 'label' | 'description' | 'limit' | 'readOnly' | 'value'>
 ): Promise<void> {
   const content = buildFrontmatterDocument(
     {
       label: block.label,
       description: block.description,
       limit: block.limit,
-      read_only: block.readOnly,
+      read_only: block.readOnly
     },
-    block.value,
+    block.value
   );
 
   await atomicWriteFile(filePath, content);
@@ -97,36 +90,34 @@ async function writeBlockFile(
 function validateLabel(label: string): string {
   const trimmed = label.trim();
   if (!/^[a-z0-9][a-z0-9-_]{1,60}$/i.test(trimmed)) {
-    throw new Error(
-      `Invalid label "${label}". Use letters/numbers/dash/underscore (2-61 chars).`,
-    );
+    throw new Error(`Invalid label "${label}". Use letters/numbers/dash/underscore (2-61 chars).`);
   }
   return trimmed;
 }
 
 export type MemoryStore = {
   ensureSeed(): Promise<void>;
-  listBlocks(scope: MemoryScope | "all"): Promise<MemoryBlock[]>;
+  listBlocks(scope: MemoryScope | 'all'): Promise<MemoryBlock[]>;
   getBlock(scope: MemoryScope, label: string): Promise<MemoryBlock>;
   setBlock(
     scope: MemoryScope,
     label: string,
     value: string,
-    opts?: { description?: string; limit?: number },
+    opts?: { description?: string; limit?: number }
   ): Promise<void>;
   replaceInBlock(scope: MemoryScope, label: string, oldText: string, newText: string): Promise<void>;
 };
 
 const SEED_BLOCKS: Array<{ scope: MemoryScope; label: string }> = [
-  { scope: "global", label: "persona" },
-  { scope: "global", label: "human" },
-  { scope: "project", label: "project" },
+  { scope: 'global', label: 'persona' },
+  { scope: 'global', label: 'human' },
+  { scope: 'project', label: 'project' }
 ];
 
 function scopeDir(projectDirectory: string, scope: MemoryScope): string {
-  return scope === "global"
-    ? path.join(os.homedir(), ".config", "opencode", "memory")
-    : path.join(projectDirectory, ".opencode", "memory");
+  return scope === 'global'
+    ? path.join(os.homedir(), '.config', 'opencode', 'memory')
+    : path.join(projectDirectory, '.opencode', 'memory');
 }
 
 async function exists(filePath: string): Promise<boolean> {
@@ -139,8 +130,8 @@ async function exists(filePath: string): Promise<boolean> {
 }
 
 async function ensureGitignore(projectDirectory: string): Promise<void> {
-  const memoryDir = path.join(projectDirectory, ".opencode", "memory");
-  const gitignorePath = path.join(memoryDir, ".gitignore");
+  const memoryDir = path.join(projectDirectory, '.opencode', 'memory');
+  const gitignorePath = path.join(memoryDir, '.gitignore');
 
   await fs.mkdir(memoryDir, { recursive: true });
 
@@ -148,18 +139,18 @@ async function ensureGitignore(projectDirectory: string): Promise<void> {
     return;
   }
 
-  await fs.writeFile(gitignorePath, "*\n", "utf-8");
+  await fs.writeFile(gitignorePath, '*\n', 'utf-8');
 }
 
 function stableSortBlocks(blocks: MemoryBlock[]): MemoryBlock[] {
   // Stable ordering for prompt caching (if provider supported).
   // Prefer a small set of canonical blocks first.
   const priority = (block: MemoryBlock): [number, string] => {
-    if (block.scope === "global" && block.label === "persona") return [0, block.label];
-    if (block.scope === "global" && block.label === "human") return [1, block.label];
-    if (block.scope === "project" && block.label === "project") return [2, block.label];
+    if (block.scope === 'global' && block.label === 'persona') return [0, block.label];
+    if (block.scope === 'global' && block.label === 'human') return [1, block.label];
+    if (block.scope === 'project' && block.label === 'project') return [2, block.label];
 
-    const scopeBase = block.scope === "global" ? 10 : 20;
+    const scopeBase = block.scope === 'global' ? 10 : 20;
     return [scopeBase, block.label];
   };
 
@@ -189,16 +180,16 @@ export function createMemoryStore(projectDirectory: string): MemoryStore {
 
         await writeBlockFile(filePath, {
           label: seed.label,
-          description: "",
+          description: '',
           limit: 5000,
           readOnly: false,
-          value: "",
+          value: ''
         });
       }
     },
 
     async listBlocks(scope) {
-      const scopes: MemoryScope[] = scope === "all" ? ["global", "project"] : [scope];
+      const scopes: MemoryScope[] = scope === 'all' ? ['global', 'project'] : [scope];
       const blocks: MemoryBlock[] = [];
 
       for (const s of scopes) {
@@ -210,7 +201,7 @@ export function createMemoryStore(projectDirectory: string): MemoryStore {
         const entries = await fs.readdir(dir, { withFileTypes: true });
         for (const entry of entries) {
           if (!entry.isFile()) continue;
-          if (!entry.name.endsWith(".md")) continue;
+          if (!entry.name.endsWith('.md')) continue;
 
           const filePath = path.join(dir, entry.name);
           try {
@@ -221,7 +212,7 @@ export function createMemoryStore(projectDirectory: string): MemoryStore {
         }
       }
 
-      return stableSortBlocks(blocks)
+      return stableSortBlocks(blocks);
     },
 
     async getBlock(scope, label) {
@@ -248,13 +239,11 @@ export function createMemoryStore(projectDirectory: string): MemoryStore {
         throw new Error(`Memory block is read-only: ${scope}:${safeLabel}`);
       }
 
-      const description = (opts?.description ?? existing?.description ?? "").trim();
+      const description = (opts?.description ?? existing?.description ?? '').trim();
       const limit = opts?.limit ?? existing?.limit ?? 5000;
 
       if (value.length > limit) {
-        throw new Error(
-          `Value too large for ${scope}:${safeLabel} (chars=${value.length}, limit=${limit}).`,
-        );
+        throw new Error(`Value too large for ${scope}:${safeLabel} (chars=${value.length}, limit=${limit}).`);
       }
 
       await writeBlockFile(filePath, {
@@ -262,7 +251,7 @@ export function createMemoryStore(projectDirectory: string): MemoryStore {
         description,
         limit,
         readOnly: existing?.readOnly ?? false,
-        value,
+        value
       });
     },
 
@@ -279,7 +268,7 @@ export function createMemoryStore(projectDirectory: string): MemoryStore {
       const next = block.value.replace(oldText, newText);
       if (next.length > block.limit) {
         throw new Error(
-          `Value too large for ${scope}:${block.label} after replace (chars=${next.length}, limit=${block.limit}).`,
+          `Value too large for ${scope}:${block.label} after replace (chars=${next.length}, limit=${block.limit}).`
         );
       }
 
@@ -288,8 +277,8 @@ export function createMemoryStore(projectDirectory: string): MemoryStore {
         description: block.description,
         limit: block.limit,
         readOnly: block.readOnly,
-        value: next,
+        value: next
       });
-    },
+    }
   };
 }

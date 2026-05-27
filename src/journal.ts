@@ -1,36 +1,34 @@
-import * as fs from "node:fs/promises";
-import * as os from "node:os";
-import * as path from "node:path";
+import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
+import * as path from 'node:path';
 
-import yaml from "js-yaml";
-import { z } from "zod";
+import yaml from 'js-yaml';
+import { z } from 'zod';
 
-import { cosineSimilarity, generateEmbedding } from "./embeddings";
-import { atomicWriteFile, buildFrontmatterDocument, splitFrontmatter } from "./frontmatter";
+import { cosineSimilarity, generateEmbedding } from './embeddings';
+import { atomicWriteFile, buildFrontmatterDocument, splitFrontmatter } from './frontmatter';
 
 const TagSchema = z.looseObject({
   name: z.string().min(1),
-  description: z.string().min(1),
+  description: z.string().min(1)
 });
 
 const ConfigSchema = z.looseObject({
   journal: z
     .looseObject({
       enabled: z.boolean().optional(),
-      tags: z.array(TagSchema).optional(),
+      tags: z.array(TagSchema).optional()
     })
-    .optional(),
+    .optional()
 });
 
 export type AgentMemoryConfig = z.infer<typeof ConfigSchema>;
 
-export async function loadConfig(
-  configDir?: string,
-): Promise<AgentMemoryConfig> {
-  const dir = configDir ?? path.join(os.homedir(), ".config", "opencode");
-  const configPath = path.join(dir, "agent-memory.json");
+export async function loadConfig(configDir?: string): Promise<AgentMemoryConfig> {
+  const dir = configDir ?? path.join(os.homedir(), '.config', 'opencode');
+  const configPath = path.join(dir, 'agent-memory.json');
   try {
-    const raw = await fs.readFile(configPath, "utf-8");
+    const raw = await fs.readFile(configPath, 'utf-8');
     const parsed = ConfigSchema.safeParse(JSON.parse(raw));
     if (!parsed.success) return {};
     return parsed.data;
@@ -52,7 +50,7 @@ const EntryFrontmatterSchema = z.looseObject({
   agent: z.string().optional(),
   session_id: z.string().optional(),
   created: z.string().optional(),
-  tags: z.array(z.string().min(1)).optional(),
+  tags: z.array(z.string().min(1)).optional()
 });
 
 export type JournalEntry = {
@@ -70,23 +68,23 @@ export type JournalEntry = {
 };
 
 function entryFilename(date: Date): string {
-  const pad = (n: number, len = 2) => String(n).padStart(len, "0");
+  const pad = (n: number, len = 2) => String(n).padStart(len, '0');
   return [
     `${date.getUTCFullYear()}${pad(date.getUTCMonth() + 1)}${pad(date.getUTCDate())}`,
-    "-",
+    '-',
     `${pad(date.getUTCHours())}${pad(date.getUTCMinutes())}${pad(date.getUTCSeconds())}`,
-    "-",
+    '-',
     `${pad(date.getUTCMilliseconds(), 3)}`,
-    ".md",
-  ].join("");
+    '.md'
+  ].join('');
 }
 
 function embeddingPath(entryPath: string): string {
-  return entryPath.replace(/\.md$/, ".embedding");
+  return entryPath.replace(/\.md$/, '.embedding');
 }
 
 async function readEntryFile(filePath: string): Promise<JournalEntry> {
-  const raw = await fs.readFile(filePath, "utf-8");
+  const raw = await fs.readFile(filePath, 'utf-8');
   const { frontmatterText, body } = splitFrontmatter(raw);
 
   if (!frontmatterText) {
@@ -100,27 +98,27 @@ async function readEntryFile(filePath: string): Promise<JournalEntry> {
   }
 
   const fm = parsed.data;
-  const id = path.basename(filePath, ".md");
+  const id = path.basename(filePath, '.md');
 
   return {
     id,
     title: fm.title,
-    project: fm.project ?? "",
-    model: fm.model ?? "",
-    provider: fm.provider ?? "",
-    agent: fm.agent ?? "",
-    sessionId: fm.session_id ?? "",
+    project: fm.project ?? '',
+    model: fm.model ?? '',
+    provider: fm.provider ?? '',
+    agent: fm.agent ?? '',
+    sessionId: fm.session_id ?? '',
     created: fm.created ? new Date(fm.created) : new Date(),
     tags: fm.tags ?? [],
     body: body.trim(),
-    filePath,
+    filePath
   };
 }
 
 async function loadEmbedding(entryPath: string): Promise<number[] | undefined> {
   const ePath = embeddingPath(entryPath);
   try {
-    const raw = await fs.readFile(ePath, "utf-8");
+    const raw = await fs.readFile(ePath, 'utf-8');
     return JSON.parse(raw) as number[];
   } catch {
     return undefined;
@@ -161,10 +159,7 @@ export type JournalStore = {
 };
 
 export function createJournalStore(configDir?: string): JournalStore {
-  const journalDir = path.join(
-    configDir ?? path.join(os.homedir(), ".config", "opencode"),
-    "journal",
-  );
+  const journalDir = path.join(configDir ?? path.join(os.homedir(), '.config', 'opencode'), 'journal');
 
   return {
     async write(entry) {
@@ -176,7 +171,7 @@ export function createJournalStore(configDir?: string): JournalStore {
 
       const frontmatter: Record<string, unknown> = {
         title: entry.title,
-        created: created.toISOString(),
+        created: created.toISOString()
       };
 
       if (entry.project) frontmatter.project = entry.project;
@@ -193,28 +188,24 @@ export function createJournalStore(configDir?: string): JournalStore {
       const searchableText = `${entry.title}\n${entry.body}`;
       try {
         const embedding = await generateEmbedding(searchableText);
-        await fs.writeFile(
-          embeddingPath(filePath),
-          JSON.stringify(embedding),
-          "utf-8",
-        );
+        await fs.writeFile(embeddingPath(filePath), JSON.stringify(embedding), 'utf-8');
       } catch {
         // Embedding generation can fail (e.g. model download issue).
         // The entry is still saved; text search remains available.
       }
 
       return {
-        id: path.basename(filePath, ".md"),
+        id: path.basename(filePath, '.md'),
         title: entry.title,
-        project: entry.project ?? "",
-        model: entry.model ?? "",
-        provider: entry.provider ?? "",
-        agent: entry.agent ?? "",
-        sessionId: entry.sessionId ?? "",
+        project: entry.project ?? '',
+        model: entry.model ?? '',
+        provider: entry.provider ?? '',
+        agent: entry.agent ?? '',
+        sessionId: entry.sessionId ?? '',
         created,
         tags: entry.tags ?? [],
         body: entry.body,
-        filePath,
+        filePath
       };
     },
 
@@ -241,10 +232,10 @@ export function createJournalStore(configDir?: string): JournalStore {
       let files: string[];
       try {
         const dirEntries = await fs.readdir(journalDir, {
-          withFileTypes: true,
+          withFileTypes: true
         });
         files = dirEntries
-          .filter((e) => e.isFile() && e.name.endsWith(".md"))
+          .filter((e) => e.isFile() && e.name.endsWith('.md'))
           .map((e) => e.name)
           .sort()
           .reverse(); // Newest first
@@ -285,9 +276,7 @@ export function createJournalStore(configDir?: string): JournalStore {
         }
         if (query.tags && query.tags.length > 0) {
           const entryTagNames = entry.tags.map((t) => t.toLowerCase());
-          const allTagsMatch = query.tags.every((t) =>
-            entryTagNames.includes(t.toLowerCase()),
-          );
+          const allTagsMatch = query.tags.every((t) => entryTagNames.includes(t.toLowerCase()));
           if (!allTagsMatch) continue;
         }
 
@@ -302,8 +291,7 @@ export function createJournalStore(configDir?: string): JournalStore {
               score = cosineSimilarity(queryEmbedding, entryEmbedding);
             } else {
               // No embedding stored; fall back to text match
-              const haystack =
-                `${entry.title}\n${entry.body}`.toLowerCase();
+              const haystack = `${entry.title}\n${entry.body}`.toLowerCase();
               score = haystack.includes(query.text.toLowerCase()) ? 0.5 : 0;
             }
           } else {
@@ -332,19 +320,17 @@ export function createJournalStore(configDir?: string): JournalStore {
       return {
         entries: entries.map((e) => e.entry),
         total,
-        allTags: Array.from(tagSet).sort(),
+        allTags: Array.from(tagSet).sort()
       };
-    },
+    }
   };
 }
 
-export function buildJournalSystemNote(
-  tags?: readonly JournalTag[],
-): string {
+export function buildJournalSystemNote(tags?: readonly JournalTag[]): string {
   const tagSection =
     tags && tags.length > 0
-      ? `\n\nSuggested tags:\n${tags.map((t) => `- ${t.name}: ${t.description}`).join("\n")}`
-      : "";
+      ? `\n\nSuggested tags:\n${tags.map((t) => `- ${t.name}: ${t.description}`).join('\n')}`
+      : '';
 
   return `<journal_instructions>
 You have access to a private journal. Use it to record thoughts, discoveries, and decisions as you work.
