@@ -3,9 +3,9 @@ node_modules/
 .bun/
 
 # Lockfiles
-bun.*
-yarn.lock
+*.lock
 package-lock.json
+.yarn/*.gz
 
 dist/
 .DS_Store
