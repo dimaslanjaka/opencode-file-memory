@@ -20,6 +20,7 @@
     "update:res": "npx -y pkg-res-updater && bun install",
     "pack": "node package.cjs",
     "prepare": "husky",
+    "build": "bun build src/plugin.ts --outdir dist --format cjs",
     "clean": "npx -y rimraf tmp dist"
   },
   "dependencies": {
