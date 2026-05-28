@@ -1,20 +1,20 @@
 {
   "/release/opencode-agent-memory-0.2.0.tgz": {
     "integrity": {
-      "sha1": "c115062b8f57716e0111e5a945176fb679d820c2",
-      "sha256": "TzPkcdTS0DgSjFxbSBmRXuFFpXq9ux4aO8smi/CmbNQ=",
-      "md5": "e52d4cbde4d34784e6220e5e0b3cd8f2",
-      "sha512": "YiKKKU2lPDyBQ2vv6YThtWqCdhCnprZd0hc64d2u1I8GClbeZCz+ZdtZ6xU28bcyLOt+5BDe/x5+0LQUU6PQCw=="
+      "sha1": "0c052b4fbdd5066ca13b2369b379654fffe97f00",
+      "sha256": "IG2ZpLUijuTrb6rI25oAp+aQB/nI9+QZ1qvaHIncZL4=",
+      "md5": "d53307e8c964b85653313cb720972d90",
+      "sha512": "qb/kJ2mxghoI2mtdItyAMUb1K/HLE8NmH4kD5iWjjJ3fErtR2IVLTtwx0MnT8EhK9FUzp1j9cKU0NIEZLBTK4A=="
     },
-    "size": "18.70 KB"
+    "size": "18.76 KB"
   },
   "/release/opencode-agent-memory.tgz": {
     "integrity": {
-      "sha1": "c115062b8f57716e0111e5a945176fb679d820c2",
-      "sha256": "TzPkcdTS0DgSjFxbSBmRXuFFpXq9ux4aO8smi/CmbNQ=",
-      "md5": "e52d4cbde4d34784e6220e5e0b3cd8f2",
-      "sha512": "YiKKKU2lPDyBQ2vv6YThtWqCdhCnprZd0hc64d2u1I8GClbeZCz+ZdtZ6xU28bcyLOt+5BDe/x5+0LQUU6PQCw=="
+      "sha1": "0c052b4fbdd5066ca13b2369b379654fffe97f00",
+      "sha256": "IG2ZpLUijuTrb6rI25oAp+aQB/nI9+QZ1qvaHIncZL4=",
+      "md5": "d53307e8c964b85653313cb720972d90",
+      "sha512": "qb/kJ2mxghoI2mtdItyAMUb1K/HLE8NmH4kD5iWjjJ3fErtR2IVLTtwx0MnT8EhK9FUzp1j9cKU0NIEZLBTK4A=="
     },
-    "size": "18.70 KB"
+    "size": "18.76 KB"
   }
 }

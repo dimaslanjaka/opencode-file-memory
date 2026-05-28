@@ -2,6 +2,9 @@
 ## Releases
 | version | tarball url |
 | :--- | :--- |
+| 0.2.0 | https://github.com/dimaslanjaka/opencode-file-memory/raw/b5dc4d7/release/opencode-agent-memory-0.2.0.tgz |
+| latest | https://github.com/dimaslanjaka/opencode-file-memory/raw/b5dc4d7/release/opencode-agent-memory.tgz |
+| latest | https://github.com/dimaslanjaka/opencode-file-memory/raw/main/release/opencode-agent-memory.tgz |
 
 use this tarball with `resolutions`:
 ```json
