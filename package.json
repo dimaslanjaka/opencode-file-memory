@@ -18,7 +18,8 @@
     "typecheck": "tsc --noEmit",
     "update:ncu": "npx -y npm-check-updates -u && bun install",
     "update:res": "npx -y pkg-res-updater && bun install",
-    "pack": "node package.cjs"
+    "pack": "node package.cjs",
+    "prepare": "husky"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",
@@ -37,6 +38,8 @@
     "@types/node": "^25.9.1",
     "binary-collections": "^2.0.12",
     "bun-types": "^1.3.14",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.5",
     "typescript": "^6.0.3"
   },
   "engines": {
