@@ -67,6 +67,125 @@ export function MemoryReplace(store: MemoryStore) {
   });
 }
 
+export function MemoryAutosave(store: MemoryStore) {
+  return tool({
+    description: 'Save a memory file to the current project using a generated filename when no title is provided.',
+    args: {
+      value: tool.schema.string(),
+      title: tool.schema.string().optional()
+    },
+    async execute(args) {
+      const value: string = args.value.trim();
+      const title = (args.title ?? '').trim().replace(/\s+/g, ' ');
+
+      // Improved summarization: prefer first markdown header, then first sentence,
+      // then first non-empty line. Collapse long titles and trim common stopwords
+      // for shorter, more meaningful filenames.
+      function summarize(text: string): string {
+        if (!text || text.trim().length === 0) return 'memory';
+
+        // Remove code blocks for cleaner summaries
+        const noCode = text.replace(/```[\s\S]*?```/g, '').replace(/`[^`]*`/g, '');
+
+        // Look for markdown headings (#, ##, ###)
+        const lines = noCode.split(/\r?\n/).map((l) => l.trim());
+        for (const l of lines) {
+          if (l.startsWith('#')) {
+            // strip leading hashes and trim
+            const hdr = l
+              .replace(/^#+\s*/, '')
+              .replace(/\s+/g, ' ')
+              .slice(0, 120)
+              .trim();
+            if (hdr.length > 0) return hdr;
+          }
+        }
+
+        // Fallback: first sentence (split on .!? followed by space/newline)
+        // eslint-disable-next-line no-useless-escape
+        const sentenceMatch = noCode.match(/([\s\S]*?)[\.\?!](?:\s|$)/);
+        if (sentenceMatch && sentenceMatch[1]) {
+          const s = sentenceMatch[1].trim();
+          if (s.length > 0) return s.slice(0, 120).trim();
+        }
+
+        // Next fallback: first non-empty line
+        const firstLine = lines.find((l) => l.length > 0) ?? 'memory';
+        return firstLine.slice(0, 120).trim();
+      }
+
+      // Slugify with word-level trimming: keep up to 5 meaningful words,
+      // drop common stopwords, normalize to ASCII-ish lowercase.
+      function slugify(text: string): string {
+        const stopwords = new Set([
+          'the',
+          'a',
+          'an',
+          'and',
+          'or',
+          'of',
+          'to',
+          'in',
+          'for',
+          'on',
+          'with',
+          'by',
+          'is',
+          'are',
+          'was',
+          'were',
+          'be',
+          'this',
+          'that'
+        ]);
+
+        const normalized = text
+          .normalize('NFKD')
+          .replace(/[^\w\s-]/g, ' ')
+          .toLowerCase();
+
+        const words = normalized
+          .split(/\s+/)
+          .map((w) => w.trim())
+          .filter(Boolean)
+          .filter((w) => !stopwords.has(w));
+
+        const chosen = words.length > 0 ? words.slice(0, 5) : [normalized.replace(/\s+/g, '-')];
+        let s = chosen.join('-');
+        s = s.replace(/-+/g, '-');
+        s = s.replace(/^-+|-+$/g, '');
+        if (!/^[a-z0-9]/.test(s)) s = `m-${s}`;
+        if (s.length < 2) s = `${s}-1`;
+        if (s.length > 61) s = s.slice(0, 61);
+        return s;
+      }
+
+      const baseTitle = title.length > 0 ? title : summarize(value);
+      let label = slugify(baseTitle);
+
+      // Ensure uniqueness by probing existing blocks
+      let attempt = 0;
+      while (true) {
+        try {
+          const s: any = (store as any).getBlock;
+          if (typeof s === 'function') {
+            await (store as any).getBlock('project', label);
+            attempt += 1;
+            label = slugify(`${baseTitle}-${attempt}`);
+            continue;
+          }
+        } catch {
+          break;
+        }
+      }
+
+      await store.setBlock('project', label, value, { description: '' });
+
+      return `Saved memory to project:${label}.`;
+    }
+  });
+}
+
 export type JournalContext = {
   directory: string;
   model: string;

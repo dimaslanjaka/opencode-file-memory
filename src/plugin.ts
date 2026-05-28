@@ -3,7 +3,15 @@ import type { Plugin, ToolDefinition } from '@opencode-ai/plugin';
 import { buildJournalSystemNote, createJournalStore, loadConfig } from './journal';
 import { createMemoryStore } from './memory';
 import { renderMemoryBlocks } from './prompt';
-import { JournalRead, JournalSearch, JournalWrite, MemoryList, MemoryReplace, MemorySet } from './tools';
+import {
+  JournalRead,
+  JournalSearch,
+  JournalWrite,
+  MemoryList,
+  MemoryReplace,
+  MemorySet,
+  MemoryAutosave
+} from './tools';
 import type { JournalContext } from './tools';
 
 export const MemoryPlugin: Plugin = async ({ directory }) => {
@@ -24,6 +32,9 @@ export const MemoryPlugin: Plugin = async ({ directory }) => {
   let journalTools: Record<string, ToolDefinition> = {};
   let journalSystemNote = '';
 
+  // Instantiate autosave tool for optional automatic saves from chat turns
+  const autosaveTool = MemoryAutosave(createMemoryStore(directory));
+
   if (journalEnabled) {
     const journalStore = createJournalStore();
     journalTools = {
@@ -39,6 +50,32 @@ export const MemoryPlugin: Plugin = async ({ directory }) => {
       if (input.model) {
         journalCtx.model = input.model.modelID;
         journalCtx.provider = input.model.providerID;
+      }
+
+      // Attempt to extract a textual payload from the chat input.
+      // Cast to any because the exact shape of the chat input is runtime-defined
+      // and varies between providers.
+      const msg: any = input as any;
+      const role = msg.role ?? msg.message?.role ?? 'user';
+      let contentText = '';
+      if (typeof msg.text === 'string') contentText = msg.text;
+      else if (typeof msg.message?.content === 'string') contentText = msg.message.content;
+      else if (Array.isArray(msg.message?.content)) {
+        contentText = msg.message.content.map((c: any) => (typeof c === 'string' ? c : (c?.text ?? ''))).join('\n');
+      }
+
+      // Heuristics: save when message is reasonably long or contains a markdown header.
+      try {
+        if (contentText && (contentText.length > 120 || contentText.includes('\n') || contentText.match(/^#+\s+/m))) {
+          // call the autosave tool; provide a minimal tool context
+          // don't await to avoid blocking critical chat processing
+          void autosaveTool.execute({ value: contentText }, {
+            agent: `${role}:autosave`,
+            sessionID: 'autosave'
+          } as any);
+        }
+      } catch {
+        // swallow errors — autosave is best-effort
       }
     },
 
@@ -62,6 +99,7 @@ export const MemoryPlugin: Plugin = async ({ directory }) => {
       memory_list: MemoryList(store),
       memory_set: MemorySet(store),
       memory_replace: MemoryReplace(store),
+      memory_autosave: MemoryAutosave(store),
       ...journalTools
     }
   };
