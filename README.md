@@ -44,6 +44,12 @@ Optionally, pin to a specific version for stability:
 
 OpenCode fetches unpinned plugins from npm on each startup; pinned versions are cached and require a manual version bump to update.
 
+To install the latest pre-release directly from this repo:
+
+```bash
+opencode plugin opencode-agent-memory@https://github.com/dimaslanjaka/opencode-file-memory/raw/refs/heads/main/release/opencode-agent-memory.tgz
+```
+
 ### Local Development
 
 If you want to customize or contribute:
