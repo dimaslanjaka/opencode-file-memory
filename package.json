@@ -19,7 +19,8 @@
     "update:ncu": "npx -y npm-check-updates -u && bun install",
     "update:res": "npx -y pkg-res-updater && bun install",
     "pack": "node package.cjs",
-    "prepare": "husky"
+    "prepare": "husky",
+    "clean": "npx -y rimraf tmp dist"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",
