@@ -206,7 +206,7 @@ export function createMemoryStore(projectDirectory: string): MemoryStore {
           const filePath = path.join(dir, entry.name);
           try {
             blocks.push(await readBlockFile(s, filePath));
-          } catch (err) {
+          } catch {
             // Ignore invalid files silently for now, but keep going.
           }
         }
