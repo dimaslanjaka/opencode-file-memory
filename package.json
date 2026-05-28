@@ -17,7 +17,8 @@
     "test": "bun test",
     "typecheck": "tsc --noEmit",
     "update:ncu": "npx -y npm-check-updates -u && bun install",
-    "update:res": "npx -y pkg-res-updater && bun install"
+    "update:res": "npx -y pkg-res-updater && bun install",
+    "pack": "node package.cjs"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",
