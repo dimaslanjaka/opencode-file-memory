@@ -1,0 +1,20 @@
+{
+  "/release/opencode-agent-memory-0.2.0.tgz": {
+    "integrity": {
+      "sha1": "c115062b8f57716e0111e5a945176fb679d820c2",
+      "sha256": "TzPkcdTS0DgSjFxbSBmRXuFFpXq9ux4aO8smi/CmbNQ=",
+      "md5": "e52d4cbde4d34784e6220e5e0b3cd8f2",
+      "sha512": "YiKKKU2lPDyBQ2vv6YThtWqCdhCnprZd0hc64d2u1I8GClbeZCz+ZdtZ6xU28bcyLOt+5BDe/x5+0LQUU6PQCw=="
+    },
+    "size": "18.70 KB"
+  },
+  "/release/opencode-agent-memory.tgz": {
+    "integrity": {
+      "sha1": "c115062b8f57716e0111e5a945176fb679d820c2",
+      "sha256": "TzPkcdTS0DgSjFxbSBmRXuFFpXq9ux4aO8smi/CmbNQ=",
+      "md5": "e52d4cbde4d34784e6220e5e0b3cd8f2",
+      "sha512": "YiKKKU2lPDyBQ2vv6YThtWqCdhCnprZd0hc64d2u1I8GClbeZCz+ZdtZ6xU28bcyLOt+5BDe/x5+0LQUU6PQCw=="
+    },
+    "size": "18.70 KB"
+  }
+}
